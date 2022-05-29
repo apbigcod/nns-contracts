@@ -1,4 +1,4 @@
-# .forever contracts
+# .⌐◨-◨ contracts
 
 This is a fork of [ens contracts](https://github.com/ensdomains/ens-contracts) that allows you to register your name once and own it forever without the need for renewals.
 

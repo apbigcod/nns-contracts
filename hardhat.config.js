@@ -20,10 +20,11 @@ task("accounts", "Prints the list of accounts", async () => {
 // Go to https://hardhat.org/config/ to learn more
 
 // TLD to use in deployment
-const TLD = 'forever';
+const TLD = '⌐◨-◨';
 
 // Go to https://www.infura.io
-const INFURA_API_KEY = 'INFURA PROJECT ID';
+const INFURA_API_KEY = '';
+const ALCHEMY_API_KEY = '';
 
 // Replace this private key with your account private key
 // To export your private key from Metamask, open Metamask and
@@ -48,11 +49,10 @@ module.exports = {
       accounts: [ accountKey ],
       tags: ["production"]
     },
-    ropsten: {
-      url: "https://ropsten.infura.io/v3/" + INFURA_API_KEY,
+    goerli: {
+      url: "https://eth-goerli.alchemyapi.io/v2/" + ALCHEMY_API_KEY,
       accounts: [ accountKey ],
-      usdOracle: '0xa92F3BE2dFf40c82b902Ffa82e50B1db414bC7E1',
-      tags: ["staging"]
+      tags: ["staging"],
     },
     hardhat: {
       // Required for real DNS record tests

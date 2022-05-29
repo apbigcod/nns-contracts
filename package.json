@@ -1,7 +1,7 @@
 {
-  "name": "@imperviousinc/forever-contracts",
+  "name": "@apbigcod/nns-contracts",
   "version": "0.0.5",
-  "description": "Forever contracts",
+  "description": "NNS contracts",
   "scripts": {
     "test": "npx hardhat test",
     "lint": "npx hardhat check",
@@ -49,12 +49,12 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/imperviousinc/forever-contracts.git"
+    "url": "git+https://github.com/apbigcod/nns-contracts.git"
   },
   "author": "",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/imperviousinc/forever-contracts/issues"
+    "url": "https://github.com/apbigcod/nns-contracts/issues"
   },
-  "homepage": "https://github.com/imperviousinc/forever-contracts#readme"
+  "homepage": "https://github.com/apbigcod/nns-contracts#readme"
 }
