@@ -7,17 +7,18 @@ module.exports = async ({getNamedAccounts, hardhatArguments, deployments, ethers
     const minCommitmentAge = 60;
     const maxCommitmentAge = 86400;
 
-    await deploy('ETHRegistrarController', {
+    await deploy('ETHRegistrarControllerWithReservation', {
         from: deployer,
         args: [
             registrar.address,
             priceOracle.address,
             minCommitmentAge,
-            maxCommitmentAge
+            maxCommitmentAge,
+            config.ethRegistrar
         ],
         log: true,
     });
 };
 
-module.exports.tags = ['ETHRegistrarController'];
+module.exports.tags = ['ETHRegistrarControllerWithReservation'];
 module.exports.dependencies = ['BaseRegistrarImplementation', 'StablePriceOracle'];
