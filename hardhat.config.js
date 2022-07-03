@@ -41,6 +41,8 @@ const accountKey = (PRIVATE_KEY === '' ? '0x00' : '0x' + PRIVATE_KEY);
  * @type import('hardhat/config').HardhatUserConfig
  */
 module.exports = {
+  ethRegistrar: "0x57f1887a8BF19b14fC0dF6Fd9B2acc9Af147eA85",
+  ethRegistry: "0x00000000000C2E074eC69A0dFb2997BA6C7d2e1e",
   tld: TLD,
   networks: {
     mainnet: {
@@ -54,6 +56,11 @@ module.exports = {
       accounts: [ accountKey ],
       tags: ["staging"],
     },
+    rinkeby: {
+      url: "https://eth-rinkeby.alchemyapi.io/v2/" + ALCHEMY_API_KEY,
+      accounts: [ accountKey ],
+      tags: ["staging"],
+    },
     hardhat: {
       // Required for real DNS record tests
       initialDate: "2019-03-15T14:06:45.000+13:00",
@@ -61,7 +68,8 @@ module.exports = {
     },
     localhost: {
       url: "http://127.0.0.1:8545",
-      tags: ["local"]
+      tags: ["local"],
+      accounts: [ accountKey ],
     },
   },
   namedAccounts: {

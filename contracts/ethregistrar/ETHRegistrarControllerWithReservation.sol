@@ -3,6 +3,7 @@ pragma solidity >=0.8.4;
 import "./PriceOracle.sol";
 import "./BaseRegistrarImplementation.sol";
 import "./StringUtils.sol";
+import "./NamedReservations.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "../resolvers/Resolver.sol";
 
@@ -16,6 +17,7 @@ contract ETHRegistrarControllerWithReservation is Ownable {
     bytes4 constant private COMMITMENT_CONTROLLER_ID = bytes4(
         keccak256("price(string)") ^
         keccak256("available(string)") ^
+        keccak256("reserved(string)") ^
         keccak256("makeCommitment(string,address,bytes32)") ^
         keccak256("commit(bytes32)") ^
         keccak256("register(string,address,bytes32)")
@@ -29,6 +31,7 @@ contract ETHRegistrarControllerWithReservation is Ownable {
     BaseRegistrarImplementation base;
     PriceOracle prices;
     IERC721 ensRegistrar;
+    NamedReservations namedReservations;
     uint public minCommitmentAge;
     uint public maxCommitmentAge;
 
@@ -37,7 +40,12 @@ contract ETHRegistrarControllerWithReservation is Ownable {
     event NameRegistered(string name, bytes32 indexed label, address indexed owner, uint cost);
     event NewPriceOracle(address indexed oracle);
 
-    constructor(BaseRegistrarImplementation _base, PriceOracle _prices, uint _minCommitmentAge, uint _maxCommitmentAge, IERC721 _ensRegistrar) {
+    constructor(BaseRegistrarImplementation _base, 
+                PriceOracle _prices, 
+                uint _minCommitmentAge, 
+                uint _maxCommitmentAge, 
+                IERC721 _ensRegistrar,
+                NamedReservations _namedReservations) {
         require(_maxCommitmentAge > _minCommitmentAge);
 
         base = _base;
@@ -45,6 +53,7 @@ contract ETHRegistrarControllerWithReservation is Ownable {
         minCommitmentAge = _minCommitmentAge;
         maxCommitmentAge = _maxCommitmentAge;
         ensRegistrar = _ensRegistrar;
+        namedReservations = _namedReservations;
     }
 
     function price(string memory name) view public returns(uint) {
@@ -61,13 +70,36 @@ contract ETHRegistrarControllerWithReservation is Ownable {
     }
 
     function reserved(string memory name) public view returns(bool) {
+        if (_is10k(name)) {
+            return true;
+        }
+
+        if (namedReservations.reserved(name)) {
+            return true;
+        }
+
         bytes32 label = keccak256(bytes(name));
         uint256 tokenId = uint256(label);
-        try ensRegistrar.ownerOf(tokenId) returns (address) {
-            return true;
+        try ensRegistrar.ownerOf(tokenId) returns (address ensOwner) {
+            return msg.sender != ensOwner;
         } catch {
             return false;
         }
+    }
+
+    function _is10k(string memory name) pure private returns(bool) {
+        uint i;
+        uint length = bytes(name).length;
+        if (length > 4) {
+            return false;
+        }
+        for(i = 0; i < length; i++) {
+            bytes1 b = bytes(name)[i];
+            if (b < 0x30 || b > 0x39) {
+                return false;
+            }
+        }
+        return true;
     }
 
     function makeCommitment(string memory name, address owner, bytes32 secret) pure public returns(bytes32) {
@@ -158,14 +190,7 @@ contract ETHRegistrarControllerWithReservation is Ownable {
         // If the commitment is too old, or the name is registered, stop
         require(commitments[commitment] + maxCommitmentAge > block.timestamp);
         require(available(name));
-
-        bytes32 label = keccak256(bytes(name));
-        uint256 tokenId = uint256(label);
-        try ensRegistrar.ownerOf(tokenId) returns (address owner) {
-            require(owner == msg.sender, "not the owner of the .eth domain");
-        } catch {
-            // not reserved
-        }
+        require(!reserved(name));
 
         delete(commitments[commitment]);
 

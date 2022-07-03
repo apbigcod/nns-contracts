@@ -25,6 +25,11 @@
         "internalType": "contract IERC721",
         "name": "_ensRegistrar",
         "type": "address"
+      },
+      {
+        "internalType": "contract NamedReservations",
+        "name": "_namedReservations",
+        "type": "address"
       }
     ],
     "stateMutability": "nonpayable",
