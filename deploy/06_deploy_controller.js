@@ -4,21 +4,23 @@ module.exports = async ({getNamedAccounts, hardhatArguments, deployments, ethers
 
     const registrar = await deployments.get('BaseRegistrarImplementation');
     const priceOracle = await deployments.get('StablePriceOracle');
+    const namedReservations = await deployments.get('NamedReservations');
     const minCommitmentAge = 60;
     const maxCommitmentAge = 86400;
 
-    await deploy('ETHRegistrarControllerWithReservation', {
+    await deploy('NNSRegistrarControllerWithReservation', {
         from: deployer,
         args: [
             registrar.address,
             priceOracle.address,
             minCommitmentAge,
             maxCommitmentAge,
-            config.ethRegistrar
+            config.ethRegistry,
+            namedReservations.address,
         ],
         log: true,
     });
 };
 
-module.exports.tags = ['ETHRegistrarControllerWithReservation'];
+module.exports.tags = ['NNSRegistrarControllerWithReservation'];
 module.exports.dependencies = ['BaseRegistrarImplementation', 'StablePriceOracle'];

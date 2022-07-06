@@ -10,7 +10,7 @@ import "../resolvers/Resolver.sol";
 /**
  * @dev A registrar controller for registering names at fixed cost.
  */
-contract ETHRegistrarControllerWithReservation is Ownable {
+contract NNSRegistrarControllerWithReservation is Ownable {
     using StringUtils for *;
 
     bytes4 constant private INTERFACE_META_ID = bytes4(keccak256("supportsInterface(bytes4)"));
@@ -30,7 +30,7 @@ contract ETHRegistrarControllerWithReservation is Ownable {
 
     BaseRegistrarImplementation base;
     PriceOracle prices;
-    IERC721 ensRegistrar;
+    ENS ethENS;
     NamedReservations namedReservations;
     uint public minCommitmentAge;
     uint public maxCommitmentAge;
@@ -44,7 +44,7 @@ contract ETHRegistrarControllerWithReservation is Ownable {
                 PriceOracle _prices, 
                 uint _minCommitmentAge, 
                 uint _maxCommitmentAge, 
-                IERC721 _ensRegistrar,
+                ENS _ethENS,
                 NamedReservations _namedReservations) {
         require(_maxCommitmentAge > _minCommitmentAge);
 
@@ -52,7 +52,7 @@ contract ETHRegistrarControllerWithReservation is Ownable {
         prices = _prices;
         minCommitmentAge = _minCommitmentAge;
         maxCommitmentAge = _maxCommitmentAge;
-        ensRegistrar = _ensRegistrar;
+        ethENS = _ethENS;
         namedReservations = _namedReservations;
     }
 
@@ -69,7 +69,7 @@ contract ETHRegistrarControllerWithReservation is Ownable {
         return valid(name) && base.available(uint256(label));
     }
 
-    function reserved(string memory name) public view returns(bool) {
+    function reserved(string memory name, address sender) public view returns(bool) {
         if (_is10k(name)) {
             return true;
         }
@@ -78,13 +78,16 @@ contract ETHRegistrarControllerWithReservation is Ownable {
             return true;
         }
 
-        bytes32 label = keccak256(bytes(name));
-        uint256 tokenId = uint256(label);
-        try ensRegistrar.ownerOf(tokenId) returns (address ensOwner) {
-            return msg.sender != ensOwner;
-        } catch {
+        address ethOwner = ethENS.owner(_computeNamehash(name));
+        if (ethOwner == address(0)) {
+            // Not owned -> free
             return false;
         }
+        if (ethOwner == sender) {
+            // Owned by the sender -> free
+            return false;
+        }
+        return true;
     }
 
     function _is10k(string memory name) pure private returns(bool) {
@@ -101,6 +104,14 @@ contract ETHRegistrarControllerWithReservation is Ownable {
         }
         return true;
     }
+
+    function _computeNamehash(string memory _name) private pure returns (bytes32 namehash) {
+        namehash = 0x0000000000000000000000000000000000000000000000000000000000000000;
+        namehash = keccak256(abi.encodePacked(namehash, keccak256(abi.encodePacked('eth'))));
+        namehash = keccak256(abi.encodePacked(namehash, keccak256(abi.encodePacked(_name))));
+        return namehash;
+    }
+
 
     function makeCommitment(string memory name, address owner, bytes32 secret) pure public returns(bytes32) {
         return makeCommitmentWithConfig(name, owner, secret, address(0), address(0));
@@ -190,7 +201,7 @@ contract ETHRegistrarControllerWithReservation is Ownable {
         // If the commitment is too old, or the name is registered, stop
         require(commitments[commitment] + maxCommitmentAge > block.timestamp);
         require(available(name));
-        require(!reserved(name));
+        require(!reserved(name, msg.sender));
 
         delete(commitments[commitment]);
 

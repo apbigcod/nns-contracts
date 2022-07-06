@@ -20,7 +20,7 @@ async function main() {
     const ens = await getContract('ENSRegistry');
     const registrar = await getContract('BaseRegistrarImplementation');
     const reverse = await getContract('ReverseRegistrar');
-    const controller = await getContract('ETHRegistrarControllerWithReservation');
+    const controller = await getContract('NNSRegistrarControllerWithReservation');
     const resolver = await getContract('PublicResolver');
 
     console.log('Generating addresses.json file ...');
